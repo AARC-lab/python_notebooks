@@ -50,7 +50,31 @@ from trajectorylib.ml.data_process import SlidingWindowDataProcessor
 from trajectorylib.ml.trainer import SlidingWindowTrainer
 
 def main(argv):
-    pass
+    data_folder = '/home/trijya/Dataset/DrivingData/'
+    window_size = 6
+    train_test_split = 0.80
+    result_folder ='./'
+    
+    try:
+        opts, args = getopt.getopt(argv,"hd:w:s:r:",["data_folder=","window_size=","train_test_split=", "result_folder="])
+        if len(opts) == 0:
+            print('Check options by typing:\n{} -h'.format(__file__))
+            sys.exit()
+
+    except getopt.GetoptError:
+        print('Check options by typing:\n{} -h'.format(__file__))
+        sys.exit(2)
+        
+    print("OPTS: {}".format(opts))
+    for opt, arg in opts:
+        if(opt == '-h'):
+            print('\n{} [OPTIONS]'.format(__file__))
+            print('\t -h, --help\t\t Get help')
+            print('\t -d, --data_folder\t\t\t Enter address of the folder where data is located.')
+            print('\t -w, --window_size\t Window Size for The Sliding Window')
+            print('\t -s, --train_test_split\t\t Ratio of Training and Test Split')
+            print('\t -r, --result_folder\t\t Folder where to store result and metrics')
+            sys.exit()
 
 
 if __name__ == "__main__":
