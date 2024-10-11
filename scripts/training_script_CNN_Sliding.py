@@ -191,7 +191,7 @@ def main(argv):
     logfile = result_directory + "/" + description.strip().replace(" ","_") + "_sliding_window_trainer_log_" + date_string + ".log"
 
     configfile = result_directory + "/config_" + description.strip().replace(" ","_") + "_sliding_window_trainer_log_" + date_string + ".yaml"
-    with open('config.yaml', 'w') as f:
+    with open(configfile, 'w') as f:
         yaml.dump(config, f, default_flow_style=False, indent=4, sort_keys=True)
     
     print(logfile)
@@ -231,9 +231,12 @@ def main(argv):
     #Define Learning Rate Scheduler
     scheduler = ReduceLROnPlateau(optimizer, mode = 'min', factor=0.1, patience=patience, min_lr=min_lr)
     trainer.train(criterion=criterion, optimizer=optimizer, scheduler=scheduler, num_epochs=num_epochs)
+    _LOGGER.info("Training finished")
     
     
-    testdata_processor = SlidingWindowDataProcessor(test_set, window_size=window_size)
+    
+    _LOGGER.info("Testing phase started.")
+    testdata_processor = SlidingWindowDataProcessor(test_set, window_size=window_size, logfile=logfile)
     testdata_processor.process_file_list()
     trainer.predict(testdata_processor)
     
@@ -242,50 +245,49 @@ def main(argv):
     # plot the metrics
     metric_df = pd.read_csv(trainer.metricfile)
     
-    # Set the figure size and resolution
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8), dpi=300)
+    
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = 'Times New Roman'
+    plt.rcParams['font.weight'] = 'bold'
+    plt.rcParams['font.size'] = 24  # Double the default size
 
+
+    # Set the figure size and resolution
+    fig, axs = plt.subplots(1, 2, figsize=(20, 8), dpi=600)
+
+    # Set LaTeX interpreter and font size
+    
     # Plot the training loss and validation loss
-    axs[0, 0].plot(metric_df['Epoch'], metric_df['Train Loss'], label='Training Loss')
-    axs[0, 0].plot(metric_df['Epoch'], metric_df['Validation Loss'], label='Validation Loss')
-    axs[0, 0].set_xlabel('Epoch')
-    axs[0, 0].set_ylabel('Loss')
-    axs[0, 0].set_title('Training and Validation Loss')
-    axs[0, 0].legend()
+    axs[0].plot(metric_df['Epoch'], metric_df['Train Loss'], label='Training Loss', color='#2d6a4f', linewidth=2)
+    axs[0].plot(metric_df['Epoch'], metric_df['Validation Loss'], label='Validation Loss', color='#a4161a', linewidth=2)
+    axs[0].set_xlabel('Epoch')
+    axs[0].set_ylabel('Loss')
+    axs[0].set_title('Training and Validation Loss')
+    axs[0].legend(loc='upper right', framealpha=0.5)
 
     # Plot the training accuracy and validation accuracy
-    axs[0, 1].plot(metric_df['Epoch'], metric_df['Train Accuracy'], label='Training Accuracy')
-    axs[0, 1].plot(metric_df['Epoch'], metric_df['Validation Accuracy'], label='Validation Accuracy')
-    axs[0, 1].set_xlabel('Epoch')
-    axs[0, 1].set_ylabel('Accuracy')
-    axs[0, 1].set_title('Training and Validation Accuracy')
-    axs[0, 1].legend()
+    axs[1].plot(metric_df['Epoch'], metric_df['Train Accuracy'], label='Training Accuracy', color='#2d6a4f', linewidth=2)
+    axs[1].plot(metric_df['Epoch'], metric_df['Validation Accuracy'], label='Validation Accuracy', color='#a4161a', linewidth=2)
+    axs[1].set_xlabel('Epoch')
+    axs[1].set_ylabel('Accuracy')
+    axs[1].set_title('Training and Validation Accuracy')
+    axs[1].legend(loc='upper right', framealpha=0.5)
 
-    # Plot the training loss and validation loss (zoomed in)
-    axs[1, 0].plot(metric_df['Epoch'], metric_df['Train Loss'], label='Training Loss')
-    axs[1, 0].plot(metric_df['Epoch'], metric_df['Validation Loss'], label='Validation Loss')
-    axs[1, 0].set_xlabel('Epoch')
-    axs[1, 0].set_ylabel('Loss')
-    axs[1, 0].set_title('Training and Validation Loss (Zoomed In)')
-    axs[1, 0].set_ylim([0.2, 0.4])  # adjust the y-axis limit
-    axs[1, 0].legend()
+    # Add grid with light gray color
+    
+    
 
-    # Plot the training accuracy and validation accuracy (zoomed in)
-    axs[1, 1].plot(metric_df['Epoch'], metric_df['Train Accuracy'], label='Training Accuracy')
-    axs[1, 1].plot(metric_df['Epoch'], metric_df['Validation Accuracy'], label='Validation Accuracy')
-    axs[1, 1].set_xlabel('Epoch')
-    axs[1, 1].set_ylabel('Accuracy')
-    axs[1, 1].set_title('Training and Validation Accuracy (Zoomed In)')
-    axs[1, 1].set_ylim([0.8, 0.9])  # adjust the y-axis limit
-    axs[1, 1].legend()
+    for ax in axs:
+        # Turn on the minor grid
+        ax.minorticks_on()
+        ax.grid(which='major', linestyle='--', alpha=0.2, color='#cccccc')
+        ax.grid(which='minor', linestyle='--', alpha=0.2, color='#cccccc')
 
     # Layout so plots do not overlap
     fig.tight_layout()
 
     # Save the plot to a file
-    
     plt.savefig(result_directory + '/training_metrics_plot.png', bbox_inches='tight')
-    
     plt.savefig(result_directory + '/training_metrics_plot.pdf', bbox_inches='tight')
     
     

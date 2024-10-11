@@ -1,6 +1,4 @@
 #!/bin/bash
-conda deactivate
-conda activate trajectory310
 
 now=$(date +%Y_%m_%d_%H_%M_%S_%N)
 
