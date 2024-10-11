@@ -1,2 +1,3 @@
 .ipynb_checkpoints/
 acc_cnn_training/
+*.log
