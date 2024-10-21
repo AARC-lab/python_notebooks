@@ -177,7 +177,19 @@ def main(argv):
     dt_object = datetime.datetime.fromtimestamp(time.time())
     date_string = dt_object.strftime('%Y_%m_%d__%H_%M_%S_%f')
     
-    date_string = "ID_{}_".format(ID) + date_string
+    # Append optional parameters to date_string
+    date_string = (
+        f"ID_{ID}_"
+        f"w{window_size}_"
+        f"n{n_filters}_"
+        f"f{n_fc_unit}_"
+        f"lr{learning_rate}_"
+        f"p{patience}_"
+        f"mlr{min_lr}_"
+        f"e{num_epochs}_"
+        f"s{seed}_"
+        + date_string
+    )
     
     if not os.path.exists(result_folder):
         os.makedirs(result_folder)
@@ -204,7 +216,7 @@ def main(argv):
     # Get a list of all CSV files in the data folder with full paths
     csv_files = [os.path.join(data_folder, f) for f in os.listdir(data_folder) if f.endswith('.csv')]
 
-    # Select 80% of the files randomly
+    # Select train_test_split% of the files randomly
     training_set = random.sample(csv_files, int(len(csv_files) * train_test_split))
 
     _LOGGER.info("Training set:")
@@ -240,11 +252,24 @@ def main(argv):
     testdata_processor.process_file_list()
     trainer.predict(testdata_processor)
     
-    onnx_accuracy = trainer.predict_onnx(testdata_processor)
+    prediction_metric = trainer.predict_onnx(testdata_processor)
+    
+    print(prediction_metric)
     
     # plot the metrics
     metric_df = pd.read_csv(trainer.metricfile)
     
+    # Define the metrics to plot
+    metrics = [
+        'Train Loss', 'Validation Loss',
+        'Train Accuracy', 'Validation Accuracy',
+        'Train Precision', 'Validation Precision',
+        'Train Recall', 'Validation Recall',
+        'Train F1 Score', 'Validation F1 Score',
+        'Train MCC', 'Validation MCC',
+        'Train Kappa', 'Validation Kappa',
+        'Train Brier Score', 'Validation Brier Score'
+    ]
     
     plt.rcParams['font.family'] = 'serif'
     plt.rcParams['font.serif'] = 'Times New Roman'
@@ -261,22 +286,16 @@ def main(argv):
     axs[0].plot(metric_df['Epoch'], metric_df['Train Loss'], label='Training Loss', color='#2d6a4f', linewidth=2)
     axs[0].plot(metric_df['Epoch'], metric_df['Validation Loss'], label='Validation Loss', color='#a4161a', linewidth=2)
     axs[0].set_xlabel('Epoch')
-    axs[0].set_ylabel('Loss')
-    axs[0].set_title('Training and Validation Loss')
     axs[0].legend(loc='upper right', framealpha=0.5)
 
     # Plot the training accuracy and validation accuracy
     axs[1].plot(metric_df['Epoch'], metric_df['Train Accuracy'], label='Training Accuracy', color='#2d6a4f', linewidth=2)
     axs[1].plot(metric_df['Epoch'], metric_df['Validation Accuracy'], label='Validation Accuracy', color='#a4161a', linewidth=2)
     axs[1].set_xlabel('Epoch')
-    axs[1].set_ylabel('Accuracy')
-    axs[1].set_title('Training and Validation Accuracy')
     axs[1].legend(loc='upper right', framealpha=0.5)
 
     # Add grid with light gray color
     
-    
-
     for ax in axs:
         # Turn on the minor grid
         ax.minorticks_on()
@@ -287,8 +306,108 @@ def main(argv):
     fig.tight_layout()
 
     # Save the plot to a file
-    plt.savefig(result_directory + '/training_metrics_plot.png', bbox_inches='tight')
-    plt.savefig(result_directory + '/training_metrics_plot.pdf', bbox_inches='tight')
+    plt.savefig(result_directory + '/loss_plot.png', bbox_inches='tight')
+    plt.savefig(result_directory + '/loss_plot.pdf', bbox_inches='tight')
+    
+    
+    ##
+    # Set the figure size and resolution
+    fig, axs = plt.subplots(1, 2, figsize=(20, 8), dpi=600)
+
+    # Set LaTeX interpreter and font size
+    
+    # Plot the training loss and validation loss
+    axs[0].plot(metric_df['Epoch'], metric_df['Train Recall'], label='Training Recall', color='#2d6a4f', linewidth=2)
+    axs[0].plot(metric_df['Epoch'], metric_df['Validation Recall'], label='Validation Recall', color='#a4161a', linewidth=2)
+    axs[0].set_xlabel('Epoch')
+    axs[0].legend(loc='upper right', framealpha=0.5)
+
+    # Plot the training accuracy and validation accuracy
+    axs[1].plot(metric_df['Epoch'], metric_df['Train Precision'], label='Training Precision', color='#2d6a4f', linewidth=2)
+    axs[1].plot(metric_df['Epoch'], metric_df['Validation Precision'], label='Validation Precision', color='#a4161a', linewidth=2)
+    axs[1].set_xlabel('Epoch')
+    axs[1].legend(loc='upper right', framealpha=0.5)
+
+    # Add grid with light gray color
+    
+    for ax in axs:
+        # Turn on the minor grid
+        ax.minorticks_on()
+        ax.grid(which='major', linestyle='--', alpha=0.2, color='#cccccc')
+        ax.grid(which='minor', linestyle='--', alpha=0.2, color='#cccccc')
+
+    # Layout so plots do not overlap
+    fig.tight_layout()
+
+    # Save the plot to a file
+    plt.savefig(result_directory + '/precision_recall_plot.png', bbox_inches='tight')
+    plt.savefig(result_directory + '/precision_recall_plot.pdf', bbox_inches='tight')
+    
+    ##
+    # Set the figure size and resolution
+    fig, axs = plt.subplots(1, 2, figsize=(20, 8), dpi=600)
+
+    # Set LaTeX interpreter and font size
+    
+    # Plot the training loss and validation loss
+    axs[0].plot(metric_df['Epoch'], metric_df['Train F1 Score'], label='Training F1 Score', color='#2d6a4f', linewidth=2)
+    axs[0].plot(metric_df['Epoch'], metric_df['Validation F1 Score'], label='Validation F1 Score', color='#a4161a', linewidth=2)
+    axs[0].set_xlabel('Epoch')
+    axs[0].legend(loc='upper right', framealpha=0.5)
+
+    # Plot the training accuracy and validation accuracy
+    axs[1].plot(metric_df['Epoch'], metric_df['Train MCC'], label='Training MCC', color='#2d6a4f', linewidth=2)
+    axs[1].plot(metric_df['Epoch'], metric_df['Validation MCC'], label='Validation MCC', color='#a4161a', linewidth=2)
+    axs[1].set_xlabel('Epoch')
+    axs[1].legend(loc='upper right', framealpha=0.5)
+
+    # Add grid with light gray color
+    
+    for ax in axs:
+        # Turn on the minor grid
+        ax.minorticks_on()
+        ax.grid(which='major', linestyle='--', alpha=0.2, color='#cccccc')
+        ax.grid(which='minor', linestyle='--', alpha=0.2, color='#cccccc')
+
+    # Layout so plots do not overlap
+    fig.tight_layout()
+
+    # Save the plot to a file
+    plt.savefig(result_directory + '/f1_mcc_plot.png', bbox_inches='tight')
+    plt.savefig(result_directory + '/f1_mcc_plot.pdf', bbox_inches='tight')
+    
+    ##
+    # Set the figure size and resolution
+    fig, axs = plt.subplots(1, 2, figsize=(20, 8), dpi=600)
+
+    # Set LaTeX interpreter and font size
+    
+    # Plot the training loss and validation loss
+    axs[0].plot(metric_df['Epoch'], metric_df['Train Kappa'], label="Training Cohen's Kappa", color='#2d6a4f', linewidth=2)
+    axs[0].plot(metric_df['Epoch'], metric_df['Validation Kappa'], label="Validation Cohen's Kappa", color='#a4161a', linewidth=2)
+    axs[0].set_xlabel('Epoch')
+    axs[0].legend(loc='upper right', framealpha=0.5)
+
+    # Plot the training accuracy and validation accuracy
+    axs[1].plot(metric_df['Epoch'], metric_df['Train Brier Score'], label='Training Brier Score', color='#2d6a4f', linewidth=2)
+    axs[1].plot(metric_df['Epoch'], metric_df['Validation Brier Score'], label='Validation Brier Score', color='#a4161a', linewidth=2)
+    axs[1].set_xlabel('Epoch')
+    axs[1].legend(loc='upper right', framealpha=0.5)
+
+    # Add grid with light gray color
+    
+    for ax in axs:
+        # Turn on the minor grid
+        ax.minorticks_on()
+        ax.grid(which='major', linestyle='--', alpha=0.2, color='#cccccc')
+        ax.grid(which='minor', linestyle='--', alpha=0.2, color='#cccccc')
+
+    # Layout so plots do not overlap
+    fig.tight_layout()
+
+    # Save the plot to a file
+    plt.savefig(result_directory + '/kappa_brier_plot.png', bbox_inches='tight')
+    plt.savefig(result_directory + '/kappa_brier.pdf', bbox_inches='tight')
     
     
     
