@@ -272,7 +272,7 @@ def main(argv):
     ]
     
     plt.rcParams['font.family'] = 'serif'
-    plt.rcParams['font.serif'] = 'Times New Roman'
+    #plt.rcParams['font.serif'] = 'Times New Roman'
     plt.rcParams['font.weight'] = 'bold'
     plt.rcParams['font.size'] = 24  # Double the default size
 
