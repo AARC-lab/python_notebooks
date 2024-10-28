@@ -76,6 +76,8 @@ def main(argv):
     
     config = {}
     
+    print("argv: {}".format(argv))
+
     try:
         opts, args = getopt.getopt(argv,"hd:w:s:r:D:n:f:c:l:p:m:e:s:I:",["data_folder=","window_size=",
                 "train_test_split=", "result_folder=", "dropout_rate=", "n_filters=", "n_fc_unit=", "learning_rate=", "patience=", "min_lr=", "num_epochs=", "seed=", "id="])
@@ -169,7 +171,7 @@ def main(argv):
         elif opt in ("-I", "--id"):
             ID = int(arg)
             config['ID'] = ID
-            print("Random Seed: {}".format(seed))
+            print("ID: {}".format(ID))
 
     random.seed(seed)
     
