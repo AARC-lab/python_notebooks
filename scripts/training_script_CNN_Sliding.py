@@ -244,7 +244,7 @@ def main(argv):
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     #Define Learning Rate Scheduler
     scheduler = ReduceLROnPlateau(optimizer, mode = 'min', factor=0.1, patience=patience, min_lr=min_lr)
-    trainer.train(criterion=criterion, optimizer=optimizer, scheduler=scheduler, num_epochs=num_epochs)
+    trainer.train(criterion=criterion, optimizer=optimizer, scheduler=scheduler, num_epochs=num_epochs, early_stopping_patience=patience)
     _LOGGER.info("Training finished")
     
     
