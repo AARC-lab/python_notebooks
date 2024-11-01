@@ -32,7 +32,7 @@ for i in "${!hz_values[@]}"; do
           -I "$ID" \
           -c "$learning_rate" \
           -b "$batch_size" \
-          > "training_log_${now}_run_${j}_ID_${ID}_w_${w}_n_${n}_num_epoch_${num_epoch}_min_epoch_${min_epoch}_learning_rate_${learning_rate}_batch_sizes_${batch_size}.txt"
+          > "training_log_${now}_run_${j}_ID_${ID}_w_${w}_n_${n}_num_epoch_${num_epoch}_min_epoch_${min_epoch}_learning_rate_${learning_rate}_batch_sizes_${batch_size}_hz_${hz}.txt"
       done
       ((ID++))
     done
