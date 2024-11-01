@@ -73,14 +73,15 @@ def main(argv):
     num_epochs= 40
     seed = 42
     ID = 100
+    batch_size = 64
     
     config = {}
     
     print("argv: {}".format(argv))
 
     try:
-        opts, args = getopt.getopt(argv,"hd:w:s:r:D:n:f:c:l:p:m:e:s:I:",["data_folder=","window_size=",
-                "train_test_split=", "result_folder=", "dropout_rate=", "n_filters=", "n_fc_unit=", "learning_rate=", "patience=", "min_lr=", "num_epochs=", "seed=", "id="])
+        opts, args = getopt.getopt(argv,"hd:w:s:r:D:n:f:c:l:p:m:e:s:I:b:",["data_folder=","window_size=",
+                "train_test_split=", "result_folder=", "dropout_rate=", "n_filters=", "n_fc_unit=", "learning_rate=", "patience=", "min_lr=", "num_epochs=", "seed=", "id=","batch_size="])
         if len(opts) == 0:
             print('Check options by typing:\n{} -h'.format(__file__))
             sys.exit()
@@ -107,6 +108,7 @@ def main(argv):
             print('\t -m, --num_epochs\t\t Number of Epochs to Train the Model')
             print('\t -e, --seed\t\t\t Random Seed for Reproducibility')
             print('\t -I, --id\t\t\t Unique Identified for this execution')
+            print('\t -b, --batch_size\t\t\t batch size for training')
             sys.exit()
         elif opt in ("-d", "--data_folder"):
             data_folder = arg
@@ -173,6 +175,11 @@ def main(argv):
             config['ID'] = ID
             print("ID: {}".format(ID))
 
+        elif opt in ("-b", "--batch_size"):
+            batch_size = int(arg)
+            config['batch_size'] = batch_size
+            print("batch_size: {}".format(batch_size))
+
     random.seed(seed)
     
     
@@ -214,6 +221,10 @@ def main(argv):
     
     # Check for GPU availability
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    _LOGGER.info("Device is: {}".format(device))
+
+    print("Device is: {}".format(device))
     
     # Get a list of all CSV files in the data folder with full paths
     csv_files = [os.path.join(data_folder, f) for f in os.listdir(data_folder) if f.endswith('.csv')]
@@ -237,7 +248,7 @@ def main(argv):
     # Create an instance of the CNN model
     model = CNN(window_size=window_size, dropout_rate=dropout_rate, n_features=dataprocessor.all_X[0].shape[1], n_filters=n_filters, n_fc_unit = n_fc_unit, logfile=logfile)
     
-    trainer = SlidingWindowTrainer(model = model, device = device, data_processor=dataprocessor, logfile=logfile, result_directory = result_directory)
+    trainer = SlidingWindowTrainer(model = model, device = device, data_processor=dataprocessor, logfile=logfile, result_directory = result_directory, batch_size = batch_size)
     
     # Define Loss and optimizer
     criterion = nn.BCELoss()
